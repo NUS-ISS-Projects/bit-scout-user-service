@@ -4,3 +4,5 @@ firebase-cred.json
 HELP.md
 ### VS Code ###
 .vscode/
+
+src/main/resources/application.properties
