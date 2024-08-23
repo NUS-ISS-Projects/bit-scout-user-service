@@ -43,7 +43,7 @@ public class AuthService {
 
         UserRecord userRecord = firebaseAuth.createUser(request);
         user.setUid(userRecord.getUid());
-        firestoreService.addUser(user.getEmail(), user.getPassword());
+        firestoreService.addUser(user.getEmail(), user.getPassword(), user.getUid());
         return user;
     }
 

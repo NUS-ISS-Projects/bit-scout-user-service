@@ -20,7 +20,7 @@ public class UserController {
     @Autowired
     private AuthService authService;
 
-    @PostMapping("/register’")
+    @PostMapping("/register")
     public ResponseEntity<?> createUser(@RequestBody User user)
             throws FirebaseAuthException, ExecutionException, InterruptedException {
         try {
