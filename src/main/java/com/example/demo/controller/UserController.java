@@ -12,7 +12,6 @@ import com.example.demo.model.User;
 import com.example.demo.service.AuthService;
 import com.google.firebase.auth.AuthErrorCode;
 import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.UserRecord;
 
 @RestController
 @RequestMapping("/account")
