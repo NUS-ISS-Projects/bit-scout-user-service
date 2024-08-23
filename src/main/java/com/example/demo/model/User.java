@@ -5,16 +5,25 @@ public class User {
     private String uid; // Unique ID used by Firebase Auth
     private String email;
     private String password;
+    private String username;
+    private String name;
+    private String avatar; // Optional: URL to avatar image
+    private String introduction; // Optional
 
     // Default constructor
     public User() {
     }
 
     // Parameterized constructor
-    public User(String uid, String email, String password) {
+    public User(String uid, String email, String password, String username, String name, String avatar,
+            String introduction) {
         this.uid = uid;
         this.email = email;
         this.password = password;
+        this.username = username;
+        this.name = name;
+        this.avatar = avatar;
+        this.introduction = introduction;
     }
 
     // Getters and Setters
@@ -42,11 +51,47 @@ public class User {
         this.password = password;
     }
 
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
+
+    public String getIntroduction() {
+        return introduction;
+    }
+
+    public void setIntroduction(String introduction) {
+        this.introduction = introduction;
+    }
+
     @Override
     public String toString() {
         return "User{" +
                 "uid='" + uid + '\'' +
                 ", email='" + email + '\'' +
+                ", username='" + username + '\'' +
+                ", name='" + name + '\'' +
+                ", avatar='" + avatar + '\'' +
+                ", introduction='" + introduction + '\'' +
                 '}';
     }
 }
