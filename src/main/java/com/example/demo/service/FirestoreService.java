@@ -4,6 +4,13 @@ import com.example.demo.model.User;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.QuerySnapshot;
+
+//Cindy added here for getting the user validity
+import com.google.cloud.firestore.QueryDocumentSnapshot;
+import java.util.List;
+//
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,5 +46,16 @@ public class FirestoreService {
     public User getUser(String uid) throws ExecutionException, InterruptedException {
         DocumentReference docRef = firestore.collection("users").document(uid);
         return docRef.get().get().toObject(User.class);
+    }
+
+    public User getUserByEmail(String email) throws ExecutionException, InterruptedException {
+        //Query Firestore for the user document
+        QuerySnapshot querySnapshot = firestore.collection("users").whereEqualTo("email", email).get().get();
+        List<QueryDocumentSnapshot> document = querySnapshot.getDocuments();
+        if(!document.isEmpty())
+        {
+            return document.get(0).toObject(User.class);
+        }
+        return null;
     }
 }

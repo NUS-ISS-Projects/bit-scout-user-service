@@ -17,6 +17,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+// Import BCrypt library for password hashing
+import org.mindrot.jbcrypt.BCrypt;
+
 import java.util.concurrent.ExecutionException;
 
 @Service
@@ -36,6 +39,14 @@ public class AuthService {
     }
 
     public User createUser(User user) throws FirebaseAuthException, ExecutionException, InterruptedException {
+
+        //Cindy added here
+        // Hash the password before storing it
+        String hashedPassword = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt());
+        // Set the hashed password
+        user.setPassword(hashedPassword);    
+        /////
+
         // Create a new user with Firebase Auth
         UserRecord.CreateRequest request = new UserRecord.CreateRequest()
                 .setEmail(user.getEmail())
@@ -72,6 +83,23 @@ public class AuthService {
     }
 
     public String loginWithEmailPassword(String email, String password) throws Exception {
+
+        //Cindy added here
+        //Retrieve the user from Firestore using the email
+        User user = firestoreService.getUserByEmail(email);
+
+        if(user == null)
+        {
+            throw new Exception("User not found");
+        }
+
+        //Check if the provided password matches the stored hashed password
+        if(!BCrypt.checkpw(password,user.getPassword()))
+        {
+            throw new Exception("Invalid Password");
+        }
+        //////
+
         // Create a RestTemplate to send the HTTP request
         RestTemplate restTemplate = new RestTemplate();
         System.out.println("Email: " + email);
