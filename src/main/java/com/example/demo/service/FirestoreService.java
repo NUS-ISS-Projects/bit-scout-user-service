@@ -10,7 +10,8 @@ import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import java.util.List;
 //
-
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +23,7 @@ public class FirestoreService {
     @Autowired
     private Firestore firestore;
 
-    public void addUser(String uid, String email, String password, String username, String name, String avatar,
+    public void addUser(String uid, String email, String password, String name, String avatar,
             String introduction) throws ExecutionException, InterruptedException {
         CollectionReference users = firestore.collection("users");
 
@@ -33,8 +34,6 @@ public class FirestoreService {
         User user = new User();
         user.setUid(uid);
         user.setEmail(email);
-        user.setPassword(password);
-        user.setUsername(username);
         user.setName(name);
         user.setAvatar(avatar);
         user.setIntroduction(introduction);
@@ -49,13 +48,27 @@ public class FirestoreService {
     }
 
     public User getUserByEmail(String email) throws ExecutionException, InterruptedException {
-        //Query Firestore for the user document
+        // Query Firestore for the user document
         QuerySnapshot querySnapshot = firestore.collection("users").whereEqualTo("email", email).get().get();
         List<QueryDocumentSnapshot> document = querySnapshot.getDocuments();
-        if(!document.isEmpty())
-        {
+        if (!document.isEmpty()) {
             return document.get(0).toObject(User.class);
         }
         return null;
     }
+
+    // Method to update user details
+    public void updateUser(String uid, String name, String avatar, String introduction)
+            throws ExecutionException, InterruptedException {
+        DocumentReference docRef = firestore.collection("users").document(uid);
+        Map<String, Object> updates = new HashMap<>();
+        if (name != null)
+            updates.put("name", name);
+        if (avatar != null)
+            updates.put("avatar", avatar);
+        if (introduction != null)
+            updates.put("introduction", introduction);
+        docRef.update(updates).get();
+    }
+
 }

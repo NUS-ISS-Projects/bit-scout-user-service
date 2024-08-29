@@ -8,8 +8,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.demo.dto.LoginRequest;
+import com.example.demo.dto.UpdateEmailPasswordRequest;
+import com.example.demo.dto.UpdateUserRequest;
 import com.example.demo.model.User;
 import com.example.demo.service.AuthService;
+import com.example.demo.service.FirestoreService;
 import com.google.firebase.auth.AuthErrorCode;
 import com.google.firebase.auth.FirebaseAuthException;
 
@@ -19,6 +22,9 @@ public class UserController {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private FirestoreService firestoreService;
 
     @PostMapping("/register")
     public ResponseEntity<?> createUser(@RequestBody User user)
@@ -57,6 +63,67 @@ public class UserController {
             return ResponseEntity.ok(userId);
         } catch (FirebaseAuthException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/user")
+    public ResponseEntity<?> getUserByToken(@RequestParam("token") String token) {
+        try {
+            User user = authService.getUserByToken(token);
+            return ResponseEntity.ok(user);
+        } catch (FirebaseAuthException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving user: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/{userId}/update")
+    public ResponseEntity<?> updateUser(@PathVariable String userId,
+            @RequestBody UpdateUserRequest updateUserRequest) {
+        try {
+            // Extract the userId from the path variable
+            String uid = userId;
+
+            // Update user details in Firestore
+            firestoreService.updateUser(uid,
+                    updateUserRequest.getName(),
+                    updateUserRequest.getAvatar(),
+                    updateUserRequest.getIntroduction());
+
+            return ResponseEntity.ok("User details updated successfully.");
+        } catch (ExecutionException | InterruptedException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error updating user: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/{userId}/update-details")
+    public ResponseEntity<?> updateUserDetails(@PathVariable String userId,
+            @RequestBody UpdateEmailPasswordRequest updateUserDetailsRequest) {
+        try {
+            // Authenticate the old password
+            if (updateUserDetailsRequest.getNewPassword() != null
+                    && !updateUserDetailsRequest.getNewPassword().isEmpty()) {
+                boolean isAuthenticated = authService.authenticateUser(userId,
+                        updateUserDetailsRequest.getOldPassword());
+
+                if (!isAuthenticated) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid old password.");
+                }
+            }
+
+            // Update user details (email and/or password)
+            authService.updateUserDetails(userId, updateUserDetailsRequest.getNewEmail(),
+                    updateUserDetailsRequest.getNewPassword());
+
+            return ResponseEntity.ok("User details updated successfully.");
+        } catch (FirebaseAuthException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error updating user details: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid request: " + e.getMessage());
         }
     }
 }

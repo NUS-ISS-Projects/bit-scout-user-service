@@ -40,11 +40,11 @@ public class AuthService {
 
     public User createUser(User user) throws FirebaseAuthException, ExecutionException, InterruptedException {
 
-        //Cindy added here
+        // Cindy added here
         // Hash the password before storing it
-        String hashedPassword = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt());
+        // String hashedPassword = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt());
         // Set the hashed password
-        user.setPassword(hashedPassword);    
+        // user.setPassword(hashedPassword);
         /////
 
         // Create a new user with Firebase Auth
@@ -59,8 +59,8 @@ public class AuthService {
         user.setUid(userRecord.getUid());
 
         // Add the user to Firestore with all the fields
-        firestoreService.addUser(user.getUid(), user.getEmail(), user.getPassword(),
-                user.getUsername(), user.getName(), user.getAvatar(), user.getIntroduction());
+        firestoreService.addUser(user.getUid(), user.getEmail(),
+                user.getName(), null, null, null);
 
         // Return the created user
         return user;
@@ -84,20 +84,18 @@ public class AuthService {
 
     public String loginWithEmailPassword(String email, String password) throws Exception {
 
-        //Cindy added here
-        //Retrieve the user from Firestore using the email
-        User user = firestoreService.getUserByEmail(email);
+        // Cindy added here
+        // Retrieve the user from Firestore using the email
+        // User user = firestoreService.getUserByEmail(email);
 
-        if(user == null)
-        {
-            throw new Exception("User not found");
-        }
+        // if (user == null) {
+        // throw new Exception("User not found");
+        // }
 
-        //Check if the provided password matches the stored hashed password
-        if(!BCrypt.checkpw(password,user.getPassword()))
-        {
-            throw new Exception("Invalid Password");
-        }
+        // Check if the provided password matches the stored hashed password
+        // if (!BCrypt.checkpw(password, user.getPassword())) {
+        // throw new Exception("Invalid Password");
+        // }
         //////
 
         // Create a RestTemplate to send the HTTP request
@@ -139,4 +137,44 @@ public class AuthService {
         return decodedToken.getUid();
     }
 
+    public void updateUserDetails(String uid, String newEmail, String newPassword) throws FirebaseAuthException {
+        UserRecord.UpdateRequest request = new UserRecord.UpdateRequest(uid);
+
+        // Update email if provided
+        if (newEmail != null && !newEmail.isEmpty()) {
+            request.setEmail(newEmail);
+        }
+
+        // Update password if provided
+        if (newPassword != null && !newPassword.isEmpty()) {
+            request.setPassword(newPassword);
+        }
+
+        firebaseAuth.updateUser(request);
+    }
+
+    public String getEmailByUid(String uid) throws Exception {
+        try {
+            // Retrieve user record from UID
+            UserRecord userRecord = firebaseAuth.getUser(uid);
+            // Return the user's email
+            return userRecord.getEmail();
+        } catch (FirebaseAuthException e) {
+            throw new Exception("Get user email");
+        }
+    }
+
+    public boolean authenticateUser(String id, String oldPassword) throws FirebaseAuthException {
+        try {
+            String email = getEmailByUid(id);
+            loginWithEmailPassword(email, oldPassword);
+            return true;
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return false;
+        }
+        // Validate old password against stored hashed password
+        // Replace with actual validation logic
+    }
 }

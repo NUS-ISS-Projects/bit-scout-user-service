@@ -5,7 +5,6 @@ public class User {
     private String uid; // Unique ID used by Firebase Auth
     private String email;
     private String password;
-    private String username;
     private String name;
     private String avatar; // Optional: URL to avatar image
     private String introduction; // Optional
@@ -15,12 +14,11 @@ public class User {
     }
 
     // Parameterized constructor
-    public User(String uid, String email, String password, String username, String name, String avatar,
+    public User(String uid, String email, String password, String name, String avatar,
             String introduction) {
         this.uid = uid;
         this.email = email;
         this.password = password;
-        this.username = username;
         this.name = name;
         this.avatar = avatar;
         this.introduction = introduction;
@@ -49,14 +47,6 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public String getName() {
@@ -88,7 +78,6 @@ public class User {
         return "User{" +
                 "uid='" + uid + '\'' +
                 ", email='" + email + '\'' +
-                ", username='" + username + '\'' +
                 ", name='" + name + '\'' +
                 ", avatar='" + avatar + '\'' +
                 ", introduction='" + introduction + '\'' +
