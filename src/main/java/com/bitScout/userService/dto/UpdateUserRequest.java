@@ -1,4 +1,4 @@
-package com.example.demo.dto;
+package com.bitScout.userService.dto;
 
 public class UpdateUserRequest {
 

@@ -1,18 +1,18 @@
-package com.example.demo.controller;
+package com.bitScout.userService.controller;
 
 import java.util.concurrent.ExecutionException;
 
+import com.bitScout.userService.dto.UpdateEmailPasswordRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.example.demo.dto.LoginRequest;
-import com.example.demo.dto.UpdateEmailPasswordRequest;
-import com.example.demo.dto.UpdateUserRequest;
-import com.example.demo.model.User;
-import com.example.demo.service.AuthService;
-import com.example.demo.service.FirestoreService;
+import com.bitScout.userService.dto.LoginRequest;
+import com.bitScout.userService.dto.UpdateUserRequest;
+import com.bitScout.userService.model.User;
+import com.bitScout.userService.service.AuthService;
+import com.bitScout.userService.service.FirestoreService;
 import com.google.firebase.auth.AuthErrorCode;
 import com.google.firebase.auth.FirebaseAuthException;
 
@@ -79,15 +79,12 @@ public class UserController {
         }
     }
 
-    @PutMapping("/{userId}/update")
-    public ResponseEntity<?> updateUser(@PathVariable String userId,
+    @PutMapping("/{userId}/updateUserDetails")
+    public ResponseEntity<?> updateUserDetails(@PathVariable String userId,
             @RequestBody UpdateUserRequest updateUserRequest) {
         try {
-            // Extract the userId from the path variable
-            String uid = userId;
-
             // Update user details in Firestore
-            firestoreService.updateUser(uid,
+            firestoreService.updateUser(userId,
                     updateUserRequest.getName(),
                     updateUserRequest.getAvatar(),
                     updateUserRequest.getIntroduction());
@@ -99,13 +96,15 @@ public class UserController {
         }
     }
 
-    @PutMapping("/{userId}/update-details")
-    public ResponseEntity<?> updateUserDetails(@PathVariable String userId,
+    @PutMapping("/{userId}/updateUserEmailPassword")
+    public ResponseEntity<?> updateUserEmailPassword(@PathVariable String userId,
             @RequestBody UpdateEmailPasswordRequest updateUserDetailsRequest) {
         try {
             // Authenticate the old password
             if (updateUserDetailsRequest.getNewPassword() != null
-                    && !updateUserDetailsRequest.getNewPassword().isEmpty()) {
+                    || !updateUserDetailsRequest.getNewPassword().isEmpty()
+                    ||  updateUserDetailsRequest.getOldPassword() !=null
+                    ||  !updateUserDetailsRequest.getOldPassword().isEmpty()) {
                 boolean isAuthenticated = authService.authenticateUser(userId,
                         updateUserDetailsRequest.getOldPassword());
 
@@ -114,8 +113,12 @@ public class UserController {
                 }
             }
 
-            // Update user details (email and/or password)
-            authService.updateUserDetails(userId, updateUserDetailsRequest.getNewEmail(),
+            // Update user details (email and/or password) in Auth
+            authService.updateUserEmailPassword(userId, updateUserDetailsRequest.getNewEmail(),
+                    updateUserDetailsRequest.getNewPassword());
+
+            // Update user details in Firestore
+            firestoreService.updateUserEmailPassword(userId, updateUserDetailsRequest.getNewEmail(),
                     updateUserDetailsRequest.getNewPassword());
 
             return ResponseEntity.ok("User details updated successfully.");

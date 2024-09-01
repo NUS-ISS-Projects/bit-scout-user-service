@@ -1,8 +1,8 @@
-package com.example.demo.dto;
+package com.bitScout.userService.dto;
 
 public class UpdateEmailPasswordRequest {
-    private String newEmail; // Optional
-    private String newPassword; // Optional
+    private String newEmail;
+    private String newPassword;
     private String oldPassword;
 
     // Getters and Setters

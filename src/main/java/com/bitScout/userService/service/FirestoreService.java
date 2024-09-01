@@ -1,6 +1,6 @@
-package com.example.demo.service;
+package com.bitScout.userService.service;
 
-import com.example.demo.model.User;
+import com.bitScout.userService.model.User;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.Firestore;
@@ -12,6 +12,8 @@ import java.util.List;
 //
 import java.util.HashMap;
 import java.util.Map;
+
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +36,7 @@ public class FirestoreService {
         User user = new User();
         user.setUid(uid);
         user.setEmail(email);
+        user.setPassword(password);
         user.setName(name);
         user.setAvatar(avatar);
         user.setIntroduction(introduction);
@@ -70,5 +73,14 @@ public class FirestoreService {
             updates.put("introduction", introduction);
         docRef.update(updates).get();
     }
-
+    public void updateUserEmailPassword(String uid, String newEmail, String newPassword)
+            throws ExecutionException, InterruptedException {
+        DocumentReference docRef = firestore.collection("users").document(uid);
+        Map<String, Object> updates = new HashMap<>();
+        if (newEmail != null && !newEmail.isEmpty())
+            updates.put("email", newEmail);
+        if(newPassword != null && !newPassword.isEmpty())
+            updates.put("password", BCrypt.hashpw(newPassword, BCrypt.gensalt()));
+        docRef.update(updates).get();
+    }
 }

@@ -1,4 +1,4 @@
-package com.example.demo.model;
+package com.bitScout.userService.model;
 
 public class User {
 

@@ -1,6 +1,6 @@
-package com.example.demo.service;
+package com.bitScout.userService.service;
 
-import com.example.demo.model.User;
+import com.bitScout.userService.model.User;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.firebase.auth.FirebaseAuth;
@@ -39,13 +39,7 @@ public class AuthService {
     }
 
     public User createUser(User user) throws FirebaseAuthException, ExecutionException, InterruptedException {
-
-        // Cindy added here
-        // Hash the password before storing it
-        // String hashedPassword = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt());
-        // Set the hashed password
-        // user.setPassword(hashedPassword);
-        /////
+         String hashedPassword = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt());
 
         // Create a new user with Firebase Auth
         UserRecord.CreateRequest request = new UserRecord.CreateRequest()
@@ -59,8 +53,8 @@ public class AuthService {
         user.setUid(userRecord.getUid());
 
         // Add the user to Firestore with all the fields
-        firestoreService.addUser(user.getUid(), user.getEmail(),
-                user.getName(), null, null, null);
+        firestoreService.addUser(user.getUid(), user.getEmail(),hashedPassword,
+                user.getName(), null, null);
 
         // Return the created user
         return user;
@@ -83,25 +77,20 @@ public class AuthService {
     }
 
     public String loginWithEmailPassword(String email, String password) throws Exception {
+         User user = firestoreService.getUserByEmail(email);
 
-        // Cindy added here
-        // Retrieve the user from Firestore using the email
-        // User user = firestoreService.getUserByEmail(email);
+         if (user == null) {
+         throw new Exception("User not found");
+         }
 
-        // if (user == null) {
-        // throw new Exception("User not found");
-        // }
-
-        // Check if the provided password matches the stored hashed password
-        // if (!BCrypt.checkpw(password, user.getPassword())) {
-        // throw new Exception("Invalid Password");
-        // }
-        //////
+         if (!BCrypt.checkpw(password, user.getPassword())) {
+         throw new Exception("Invalid Password");
+         }
 
         // Create a RestTemplate to send the HTTP request
         RestTemplate restTemplate = new RestTemplate();
-        System.out.println("Email: " + email);
-        System.out.println("Password: " + password); // Do not log passwords in production!
+//        System.out.println("Email: " + email);
+//        System.out.println("Password: " + password); // Do not log passwords in production!
 
         // Prepare the request payload
         String payload = String.format("{\"email\":\"%s\",\"password\":\"%s\",\"returnSecureToken\":true}", email,
@@ -137,7 +126,7 @@ public class AuthService {
         return decodedToken.getUid();
     }
 
-    public void updateUserDetails(String uid, String newEmail, String newPassword) throws FirebaseAuthException {
+    public void updateUserEmailPassword(String uid, String newEmail, String newPassword) throws FirebaseAuthException {
         UserRecord.UpdateRequest request = new UserRecord.UpdateRequest(uid);
 
         // Update email if provided
@@ -166,15 +155,20 @@ public class AuthService {
 
     public boolean authenticateUser(String id, String oldPassword) throws FirebaseAuthException {
         try {
-            String email = getEmailByUid(id);
-            loginWithEmailPassword(email, oldPassword);
+            User user = firestoreService.getUserByEmail(getEmailByUid(id));
+
+            if (user == null) {
+                throw new Exception("User not found");
+            }
+
+            if (!BCrypt.checkpw(oldPassword, user.getPassword())) {
+                throw new Exception("Invalid Password");
+            }
+
             return true;
         } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            System.out.println("Error authenticating user: " + e.getMessage());
             return false;
         }
-        // Validate old password against stored hashed password
-        // Replace with actual validation logic
     }
 }

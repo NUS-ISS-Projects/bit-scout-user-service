@@ -1,4 +1,4 @@
-package com.example.demo.util;
+package com.bitScout.userService.util;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.firestore.Firestore;
@@ -31,7 +31,7 @@ public class FirebaseConfig {
 
     private void initializeFirebaseApp() throws IOException {
         if (!firebaseInitialized) {
-            String filePath = "app/google-services.json";
+            String filePath = "C:\\Users\\mummy\\OneDrive\\Desktop\\Projects\\bit-scout\\bit-scout-user-service\\google-services.json";
             try {
                 FileInputStream serviceAccount = new FileInputStream(filePath);
                 FirebaseOptions options = FirebaseOptions.builder()
