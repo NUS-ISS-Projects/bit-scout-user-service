@@ -31,7 +31,8 @@ public class FirebaseConfig {
 
     private void initializeFirebaseApp() throws IOException {
         if (!firebaseInitialized) {
-            String filePath = "C:\\Users\\mummy\\OneDrive\\Desktop\\Projects\\bit-scout\\bit-scout-user-service\\google-services.json";
+            // Enter google-services file path name
+            String filePath = "";
             try {
                 FileInputStream serviceAccount = new FileInputStream(filePath);
                 FirebaseOptions options = FirebaseOptions.builder()
