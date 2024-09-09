@@ -32,7 +32,7 @@ public class FirebaseConfig {
     private void initializeFirebaseApp() throws IOException {
         if (!firebaseInitialized) {
             // Enter google-services file path name
-            String filePath = "";
+            String filePath = "app/google-services.json";
             try {
                 FileInputStream serviceAccount = new FileInputStream(filePath);
                 FirebaseOptions options = FirebaseOptions.builder()
