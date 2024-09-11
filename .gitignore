@@ -1,4 +1,4 @@
-app
+# app
 target/
 firebase-cred.json
 HELP.md
@@ -6,4 +6,4 @@ HELP.md
 .vscode/
 
 
-src/main/resources/application.properties
+# src/main/resources/application.properties
