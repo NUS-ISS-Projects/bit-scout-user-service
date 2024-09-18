@@ -60,6 +60,7 @@ public class UserController {
     public ResponseEntity<?> getUserId(@RequestParam("token") String token) {
         try {
             String userId = authService.getUserIdFromToken(token);
+            System.out.println("User ID: " + userId);
             return ResponseEntity.ok(userId);
         } catch (FirebaseAuthException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token: " + e.getMessage());
