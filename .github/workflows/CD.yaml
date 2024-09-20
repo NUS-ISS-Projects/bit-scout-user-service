@@ -1,0 +1,94 @@
+name: Build and Deploy Docker Image to GHCR
+
+on:
+  push:
+    tags:
+      - 'release*'   # Trigger for release tags
+      - 'staging*'   # Trigger for staging tags
+
+env:
+  IMAGE_NAME: ghcr.io/nus-iss-projects/bit-scout-user-service/bit-scout-user-service
+
+jobs:
+  setup-build-deploy:
+    name: Setup, Build, and Package the Application
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout code
+      - uses: actions/checkout@v2
+
+      # Set up JDK 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 17
+
+      # Retrieve Firebase credentials (if required)
+      - name: Retrieve firebase credentials
+        env:
+          DATA: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          echo $DATA | base64 -di > app/google-services.json
+          if [ ! -f "app/google-services.json" ]; then
+            echo "Error: Firebase credentials file not found."
+            exit 1
+          fi    
+
+      # Build the Maven project
+      - name: Build with Maven
+        run: mvn clean install --batch-mode --errors --fail-at-end
+
+      # Save the JAR file as an artifact
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: userService-0.0.1-SNAPSHOT.jar
+          path: target/
+
+  build-docker-image:
+    name: Build and Push Docker Image to GHCR
+    needs: setup-build-deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      # Checkout code
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      # Retrieve saved JAR file from previous job
+      - name: Retrieve saved JAR
+        uses: actions/download-artifact@v3
+        with:
+          name: userService-0.0.1-SNAPSHOT.jar
+          path: target/
+
+      # Set the build timestamp as image tag
+      - name: Set build date as image tag
+        run: echo "IMAGE_TAG=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
+
+      # Set up Docker build
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      # Build and push the Docker image to GHCR
+      - name: Build and Push Docker Image
+        env:
+          USERNAME: ${{ secrets.GITHUB_USERNAME }}
+          PASSWORD: ${{ secrets.GITHUB_PASSWORD }}
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+          docker build --tag ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} .
+          docker tag ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} ${{ env.IMAGE_NAME }}:latest
+          docker push ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          docker push ${{ env.IMAGE_NAME }}:latest
+
+  notify-success:
+    name: Notify Success
+    needs: build-docker-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Deployment Success
+        run: echo "Docker image successfully built and pushed to GHCR with tag ${{ env.IMAGE_TAG }}."

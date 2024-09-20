@@ -60,6 +60,7 @@ public class UserController {
     public ResponseEntity<?> getUserId(@RequestParam("token") String token) {
         try {
             String userId = authService.getUserIdFromToken(token);
+            System.out.println("User ID: " + userId);
             return ResponseEntity.ok(userId);
         } catch (FirebaseAuthException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token: " + e.getMessage());
@@ -128,5 +129,11 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid request: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/health")
+    public ResponseEntity<String> healthCheck() {
+        String podName = System.getenv("HOSTNAME");
+        return ResponseEntity.ok("User service is up and running on pod: " + podName);
     }
 }
